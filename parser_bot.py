@@ -3,6 +3,7 @@ import json
 import time
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import BotCommand
 
 # Конфигурация
 CACHE_FILE = 'news_cache.json'
@@ -18,6 +19,20 @@ try:
 except:
     BOT_TOKEN = os.environ.get("token")
 
+async def set_commands(app: Application):
+    """Установка подсказок команд в интерфейсе Telegram"""
+    commands = [
+        ("start", "Начать работу с ботом"),
+        ("help", "Показать справку по командам"),
+        ("parserbot", "Запустить парсер новостей (наука, февраль 2025)"),
+        ("novosty", "Показать сохранённые новости")
+    ]
+    await app.bot.set_my_commands(commands)
+
+async def post_init(app: Application):
+    """Действия после инициализации бота"""
+    await set_commands(app)
+    print("✅ Подсказки команд установлены")
 
 def init_cache():
     """Инициализация пустого кеша"""
@@ -157,7 +172,10 @@ async def show_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Запуск бота"""
-    app = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder() \
+        .token(BOT_TOKEN) \
+        .post_init(post_init) \
+        .build()
 
     # Регистрация обработчиков
     app.add_handler(CommandHandler("start", start))
